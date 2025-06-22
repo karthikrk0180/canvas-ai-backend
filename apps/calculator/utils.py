@@ -1,11 +1,21 @@
 import google.generativeai as genai
 import ast
 import json
+import re
 from PIL import Image
 from constants import GEMINI_API_KEY
 
 genai.configure(api_key = GEMINI_API_KEY)
 model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+
+def clean_json_response(text):
+    """
+    Finds and extracts the content of a JSON code block from a string.
+    """
+    match = re.search(r'```(json)?\s*(?P<json_data>\[.*\])\s*```', text, re.DOTALL)
+    if match:
+        return match.group('json_data')
+    return text # Return original text if no JSON block is found
 
 def analyze_Image(img: Image, dict_of_vars: dict):
     dict_of_vars_str = json.dumps(dict_of_vars, ensure_ascii=False)
@@ -31,16 +41,19 @@ def analyze_Image(img: Image, dict_of_vars: dict):
         f"PROPERLY QUOTE THE KEYS AND VALUES IN THE DICTIONARY FOR EASIER PARSING WITH Python's ast.literal_eval."
     ) 
     response = model.generate_content([prompt, img])
-    print(response.text)
+    
+    cleaned_response = clean_json_response(response.text)
+    
     answers = []
     try:
-        answers = ast.literal_eval(response.text)
+        answers = ast.literal_eval(cleaned_response)
     except Exception as e:
         print(f"Error in parsing response from Gemini API: {e}")
+        print(f"Original response: {response.text}")
+    
     print('returned answer ', answers)
     for answer in answers:
-        if 'assign' in answer:
-            answer['assign'] = True
-        else:
+        if 'assign' not in answer:
             answer['assign'] = False
+            
     return answers

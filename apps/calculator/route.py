@@ -8,17 +8,14 @@ from PIL import Image
 router = APIRouter()
 
 @router.post('')
-async def run(data: ImageData):
-    image_data = base64.b64decode(data.image.split(',')[1])
-    image_bytes = BytesIO(image_data)
+async def run(image_data: ImageData):
+    decoded_image_data = base64.b64decode(image_data.image.split(',')[1])
+    image_bytes = BytesIO(decoded_image_data)
     image = Image.open(image_bytes)
-    responses = analyze_Image(image, dict_of_vars=data.dict_of_vars)
-    data=[]
-    for response in responses:
-        data.append(response)
-    print('response in route: ', response)
+    responses = analyze_Image(image, dict_of_vars=image_data.dict_of_vars)
+    
     return {
-        "message":"Image Processed",
+        "message": "Image Processed",
         "type": "success",
-        "data": data,
+        "data": responses,
     }
