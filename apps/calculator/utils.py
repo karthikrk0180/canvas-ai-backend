@@ -7,7 +7,7 @@ from constants import GEMINI_API_KEY
 
 
 genai.configure(api_key = GEMINI_API_KEY)
-model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+model = genai.GenerativeModel(model_name="gemini-2.0-flash")
 
 def read_prompt():
     with open("apps/calculator/prompt.txt", "r", encoding="utf-8") as f:
